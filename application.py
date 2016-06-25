@@ -71,5 +71,14 @@ def filter():
 		response_reports.append(reports.serialize)
 	return jsonify(reports=response_reports)
 
+@application.route('/sameer')
+def sameer():
+	point1 = {
+		'latitude' : 33.1,
+		'longitude' : -122.4
+	}
+	list_points = [point1, point1, point1]
+	return jsonify(points=list_points)
+
 if __name__ == "__main__":
 	application.run(host="0.0.0.0", port=80, debug=True, threaded=True)
