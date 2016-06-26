@@ -6,6 +6,7 @@
 		$("#submit").on('click', function(){
 			var origin = $("#origin").val();
 			var destination = $("#destination").val();
+			window.location = "/get_map?start=" + origin.replace(" ", "+") + "&end=" + destination.replace(" ", "+");
 		});
 	});
 </script>

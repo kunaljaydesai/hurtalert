@@ -1,0 +1,17 @@
+{
+  "name": "sameermap",
+  "version": "1.0.0",
+  "description": "",
+  "main": "getData.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fs": "0.0.2",
+    "geolib": "^2.0.21",
+    "json2csv": "^3.5.0",
+    "request": "^2.72.0"
+  }
+}

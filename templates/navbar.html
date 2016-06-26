@@ -11,16 +11,29 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+	$(document).ready(function() {
+		$("#heatmap").on('click', function(data) {
+			window.open('/heat_map', _blank);
+		});
+	});
+</script>
 {% block script %}
 {% endblock %}
 <!DOCTYPE html>
 <html>
-	<nav class="navbar navbar-default navbar-fixed-top">
-	  <div class="container">
-	    <a href="/"><button type="button" id="home" class="btn btn-default navbar-btn">Home</button></a>
-	    <a href="/safest_route"><button type="button" id="safest_route" class="btn btn-default navbar-btn">Safest Route</button></a>
-	    <a href="/my_info"><button type="button" id="my_info" class="btn btn-default navbar-btn">My Info</button></a>
-	  </div>
+	<nav class="navbar navbar-inverse">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="#">Hurt Alert</a>
+			</div>
+			<ul class="nav navbar-nav">
+				<li><a href="/home">Analytics</a></li>
+				<li><a href="/safest_route">Safest Route</a></li>
+				<li id="heatmap" ><a href="/heat_map">Heat Map</a></li>
+				<li><a href="/android">Android Application</a></li>
+			</ul>
+		</div>
 	</nav>
 	<br>
 	<br>

@@ -1,0 +1,117 @@
+
+<!-- <!DOCTYPE html> -->
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+    <title>Berkeley Crime Data</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/3.17/esri/css/esri.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//esri.github.io/bootstrap-map-js/src/css/bootstrapmap.css">
+    <style>
+      html, body, #map {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background-color: #FFF;
+        overflow: hidden;
+        font-family: "Trebuchet MS";
+      }
+      .esriPopup .titlePane {
+        background-color: #330000 !important;
+      }
+    </style>
+    <script src="https://js.arcgis.com/3.17/"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+    <script>
+      var map, csv;
+
+      require([
+        "esri/map", 
+        "esri/layers/CSVLayer",
+        "esri/Color",
+        "esri/symbols/SimpleMarkerSymbol",
+        "esri/renderers/SimpleRenderer",
+        "esri/InfoTemplate",
+        "esri/renderers/HeatmapRenderer",
+        "dojo/on",
+        "dojo/dom",
+        "dojo/domReady!"
+      ], function(
+        Map, CSVLayer, Color, SimpleMarkerSymbol, SimpleRenderer, InfoTemplate, HeatmapRenderer, on, dom
+      ) {
+        map = new Map("map", {
+          basemap: "hybrid",
+          minZoom: 12,
+          zoom: 15
+        });
+//
+        $.getJSON("{{url_for('static', filename='center.json')}}", function(json) {
+          //centerJSON = json;
+          var latitude = Number(json.latitude);
+          var longitude = Number(json.longitude);
+          map.centerAt([longitude, latitude]);
+        });
+
+        csv = new CSVLayer("{{ url_for('static', filename='crime.csv') }}");
+        var blurCtrl = document.getElementById("blurControl");
+        var renderer = new HeatmapRenderer({
+          blurRadius: blurCtrl.value
+        });
+        csv.setRenderer(renderer);
+        map.addLayer(csv);
+
+        convertTime = function(value, key, data) {
+          var date = new Date(value*1000);
+          return date.toLocaleString();
+        };
+
+        convertCrime = function(value, key, data) {
+          return value.replace(/\w\S*/g, function(txt){
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+          });
+        };
+
+        var template = new InfoTemplate("Crime Information");
+        template.setContent("<b>Latitude</b>: ${latitude}" +
+                "<br><b>Longitude</b>: ${longitude}" + "<br><b>Time of Incident</b>: ${time:convertTime}" +
+                "</br><b>Crime</b>: ${type_crime:convertCrime}");
+        csv.setInfoTemplate(template);
+
+
+        var sliders = document.querySelectorAll(".panel .panel-primary .panel-fixed .panel-body input[type=range]");
+        var addLiveValue = function (ctrl){
+          var val = ctrl.previousElementSibling.querySelector("span");
+          ctrl.addEventListener("input", function (evt){
+            val.innerHTML = evt.target.value;
+          });
+        };
+        for (var i = 0; i < sliders.length; i++) {
+          addLiveValue(sliders.item(i));
+        }
+        blurCtrl.addEventListener("change", function (evt){
+          var r = +evt.target.value;
+          if (r !== renderer.blurRadius) {
+            renderer.blurRadius = r;
+            csv.redraw();
+          }
+        });
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="map"></div>
+    <div class="panel panel-primary panel-fixed">
+      <div class="panel-heading">
+        <h3 class="panel-title">Blur Radius</h3>
+      </div>
+      <div class="panel-body">
+        <input id="blurControl" type="range" max=20 min=0 value=10 step=.25/>
+      </div>
+    </div>
+  </body>
+</html>
