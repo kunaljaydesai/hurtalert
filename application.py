@@ -61,17 +61,17 @@ def emergency():
 	longitude = request.args.get('longitude')
 	type_report = request.args.get('type')
 	time = request.args.get('time')
-	list_contacts = Contacts.query.filter_by(user_reference=user).all()
+	list_contacts = Contacts.query.filter_by(user_reference=3).all()
 	phone_numbers = [contact.phone for contact in list_contacts]
-	urgent_user = User.query.filter_by(id=user).first()
+	urgent_user = User.query.filter_by(id=3).first()
 	for number in phone_numbers:
 		print(number)
-		if int(latitude) != -1 and int(longitude) != -1:
-			TwilioClient.send_message_to(urgent_user, latitude=latitude, longitude=longitude, to=number)
+		if latitude is not None and longitude is not None and int(latitude) != -1 and int(longitude) != -1:
+			print(TwilioClient.send_message_to(urgent_user, latitude=latitude, longitude=longitude, to=str(number)))
 		else:
-			TwilioClient.send_message_to(urgent_user, to=number)
-	report = Reports(time, 3, latitude, longitude, type_report)
-	return jsonify(report=report.insert_into_db())
+			print(TwilioClient.send_message_to(urgent_user, to=str(number)))
+	#report = Reports(time, 3, latitude, longitude, type_report)
+	return jsonify(report=0)
 
 @application.route('/filter')
 def filter():
