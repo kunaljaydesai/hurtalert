@@ -100,7 +100,7 @@ def by_hour():
 	list_reports = Reports.query.all()
 	hour_map = {}
 	for report in list_reports:
-		time = datetime.datetime.fromtimestamp(report.time).time().hour
+		time = datetime.datetime.fromtimestamp(report.time).time().hour - 7
 		if time in hour_map:
 			hour_map[time] = hour_map[time] + 1
 		else:
