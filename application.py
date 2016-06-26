@@ -143,7 +143,7 @@ def sameer():
 
 @application.route('/get_reports')
 def get_reports():
-	reports = Reports.query.filter(Reports.time < 1467337800).limit(1000).all()
+	reports = Reports.query.filter(Reports.time < 1467337800).all()
 	return jsonify(reports=[report.serialize for report in reports])
 
 @application.route('/bounding_boxes')
@@ -157,15 +157,15 @@ def bounding_box():
 		},
 		'bottom_right' : {
 			'latitude' : 37.9049 - lat_step,
-			'longitude' : -122.319 - lon_step,
+			'longitude' : -122.319 + lon_step,
 		},
 	}
 	
 	bounding_boxes = [current_box]
 	current_longitude = current_box['top_left']['longitude']
 	current_latitude = current_box['top_left']['latitude']
-	while current_longitude < -122.164:
-		while current_latitude > 37.4636:
+	while current_longitude <= -122.164:
+		while current_latitude >= 37.4636:
 			top_left_long = current_box['top_left']['longitude']
 			top_left_lat = current_box['top_left']['latitude']
 			bottom_right_long = current_box['bottom_right']['longitude']
@@ -182,7 +182,7 @@ def bounding_box():
 			}
 			bounding_boxes.append(current_box)
 			current_latitude = current_box['top_left']['latitude']
-		current_longitude = current_longitude - lon_step
+		current_longitude = current_longitude + lon_step
 		current_box = {
 			'top_left' : {
 				'latitude' : 37.9049,
@@ -190,7 +190,7 @@ def bounding_box():
 			},
 			'bottom_right' : {
 				'latitude' : 37.9049 - 0.004412,
-				'longitude' : current_longitude - lon_step,
+				'longitude' : current_longitude + lon_step,
 			}
 		}
 		print('new latitude')
