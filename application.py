@@ -42,7 +42,7 @@ def get_contacts():
 @application.route("/addreport")
 def add_report():
 	time = request.args.get('time')
-	reporter = request.args.get('reporter')
+	reporter = 3
 	latitude = request.args.get('latitude')
 	longitude = request.args.get('longitude')
 	type_report = request.args.get('type')
@@ -65,7 +65,7 @@ def emergency():
 			TwilioClient.send_message_to(urgent_user, latitude=latitude, longitude=longitude, to=number)
 		else:
 			TwilioClient.send_message_to(urgent_user, to=number)
-	report = Reports(time, user, latitude, longitude, type_report)
+	report = Reports(time, 3, latitude, longitude, type_report)
 	return jsonify(report=report.insert_into_db())
 
 @application.route('/filter')
