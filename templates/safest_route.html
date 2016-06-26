@@ -1,0 +1,28 @@
+{% extends 'navbar.html' %}
+
+{% block script %}
+<script>
+	$(document).ready(function() {
+		$("#submit").on('click', function(){
+			var origin = $("#origin").val();
+			var destination = $("#destination").val();
+		});
+	});
+</script>
+
+{% endblock %}
+{% block body %}
+
+	<div class="container">
+		<br>
+		<h2>Origin</h2>
+		<input id="origin" placeholder="321 Waldo Way"></input>
+		<br>
+		<h2>Destination</h2>
+		<input id="destination" placeholder="1000 Innovation Way"></input>
+		<br>
+		<button id="submit">Submit</button>
+	</div>
+	<br>
+	<br>
+{% endblock %}

@@ -2,11 +2,16 @@ from flask import Flask, request, render_template, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from models import User, Contacts, Reports, db
 from api.twilio_client import TwilioClient
+import datetime
 
 application = Flask(__name__)
 application.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:crimeapp@crime.cnfegalrlacy.us-west-2.rds.amazonaws.com/crime'
 application.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(application)
+
+
+unharmful = ["BURGLARY COMMERCIAL", "BURGLARY RESIDENTIAL", "BURGLARY AUTO", "MUNICIPAL CODE", "DISTURBANCE", "DOMESTIC VIOLENCE", "FRAUD/FORGERY", "IDENTIFY THEFT", "ALCOHOL OFFENSE", "VEHICLE STOLEN", "2ND RESPONSE", "DISTURBANCE - NOISE", "VEHICLE RECOVERED", "VANDALISM", "ARSON"]
+harmful = [""]
 
 @application.before_first_request
 def create_tables():
@@ -86,6 +91,47 @@ def filter():
 		response_reports.append(reports.serialize)
 	return jsonify(reports=response_reports)
 
+@application.route('/safest_route')
+def safest_route():
+	return render_template('safest_route.html')
+
+@application.route('/crime_rates_by_hour')
+def by_hour():
+	list_reports = Reports.query.all()
+	hour_map = {}
+	for report in list_reports:
+		time = datetime.datetime.fromtimestamp(report.time).time().hour
+		if time in hour_map:
+			hour_map[time] = hour_map[time] + 1
+		else:
+			hour_map[time] = 1
+	return jsonify(hour=hour_map, count=len(list_reports))
+
+@application.route('/crime_rates_by_dow')
+def by_dow():
+	list_reports = Reports.query.all()
+	dow = {}
+	for report in list_reports:
+		time = datetime.datetime.fromtimestamp(report.time).date().weekday()
+		if time in dow:
+			dow[time] = dow[time] + 1
+		else:
+			dow[time] = 1
+	return jsonify(dow=dow, count=len(list_reports))
+
+@application.route('/crime_rates_by_month')
+def by_month():
+	list_reports = Reports.query.all()
+	month = {0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0, 11:0};
+	for report in list_reports:
+		time = datetime.datetime.fromtimestamp(report.time).date().month -1
+		if time in month:
+			month[time] = month[time] + 1
+		else:
+			month[time] = 1
+	return jsonify(month=month, count=len(list_reports))
+
+
 @application.route('/sameer')
 def sameer():
 	point1 = {
@@ -95,5 +141,62 @@ def sameer():
 	list_points = [point1, point1, point1]
 	return jsonify(points=list_points)
 
+@application.route('/get_reports')
+def get_reports():
+	reports = Reports.query.filter(Reports.time < 1467337800).limit(1000).all()
+	return jsonify(reports=[report.serialize for report in reports])
+
+@application.route('/bounding_boxes')
+def bounding_box():
+	lat_step = (37.9049 - 37.4636) / 30
+	lon_step = (122.319 - 122.164) / 30 
+	current_box = {
+		'top_left' : {
+			'latitude' : 37.9049,
+			'longitude' : -122.319,
+		},
+		'bottom_right' : {
+			'latitude' : 37.9049 - lat_step,
+			'longitude' : -122.319 - lon_step,
+		},
+	}
+	
+	bounding_boxes = [current_box]
+	current_longitude = current_box['top_left']['longitude']
+	current_latitude = current_box['top_left']['latitude']
+	while current_longitude < -122.164:
+		while current_latitude > 37.4636:
+			top_left_long = current_box['top_left']['longitude']
+			top_left_lat = current_box['top_left']['latitude']
+			bottom_right_long = current_box['bottom_right']['longitude']
+			bottom_right_lat = current_box['bottom_right']['latitude']
+			current_box = {
+				'top_left' : {
+					'latitude' : top_left_lat - lat_step,
+					'longitude' : top_left_long,
+				},
+				'bottom_right' : {
+					'latitude' : bottom_right_lat - lat_step,
+					'longitude' : bottom_right_long,
+				},
+			}
+			bounding_boxes.append(current_box)
+			current_latitude = current_box['top_left']['latitude']
+		current_longitude = current_longitude - lon_step
+		current_box = {
+			'top_left' : {
+				'latitude' : 37.9049,
+				'longitude' : current_longitude,
+			},
+			'bottom_right' : {
+				'latitude' : 37.9049 - 0.004412,
+				'longitude' : current_longitude - lon_step,
+			}
+		}
+		print('new latitude')
+		bounding_boxes.append(current_box)
+	return jsonify(bounding_boxes=bounding_boxes)
+
+
 if __name__ == "__main__":
-	application.run(host="0.0.0.0", port=80, debug=True, threaded=True)
+	application.run(host="0.0.0.0", port=81, debug=True)
