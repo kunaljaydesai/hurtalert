@@ -1,0 +1,51 @@
+{% extends 'navbar.html' %}
+{% block script %}
+<script src="{{ url_for('static', filename='upload.js') }}"></script>
+<script>
+	$(document).ready(function() {
+		$("#submit").on('click', function() {
+			var phone = $("#phone").val();
+			addContact(phone, function(data) {
+				location.reload();
+			});
+		})
+		$.ajax({
+			'url' : '/get_contacts',
+			success : function(data) {
+				var listPhone = data;
+				for (var i = 0; i < listPhone.length; i++) {
+					var phoneObj = listPhone[i];
+					var phoneNum = phoneObj.phone;
+					var phoneString = "<td>" + phoneNum + "</td>";
+					$("#e_data").append("<tr>" + phoneString + "</tr>");
+				}
+			}
+		});
+	});
+</script>
+{% endblock %}
+
+{% block body %}
+
+<div class="container">
+	<h1>Current Contacts</h1>
+	<table class="table table-striped">
+		<thead>
+			<tr>
+				<th>Phone</th>
+			</tr>
+			<tbody id="e_data">
+				
+			</tbody>
+		</thead>
+	</table>
+	<h1>Add Contact</h1>
+	<form>
+	  <fieldset class="form-group">
+	    <label>Phone Number</label>
+	    <input type="text" class="form-control" id="phone" placeholder="123 456 7890">
+	  </fieldset>
+	</form>
+	<button id="submit">Add Contact</button>
+</div>
+{% endblock %}

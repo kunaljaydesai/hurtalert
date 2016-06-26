@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from models import User, Contacts, Reports, db
+from api.twilio_client import TwilioClient
 
 application = Flask(__name__)
 application.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:crimeapp@crime.cnfegalrlacy.us-west-2.rds.amazonaws.com/crime'
@@ -13,7 +14,7 @@ def create_tables():
 
 @application.route("/")
 def index():
-	return 'test'
+	return render_template('home.html')
 
 @application.route("/newuser")
 def new_user():
@@ -23,11 +24,20 @@ def new_user():
 	return jsonify(user=user.insert_into_db())
 
 @application.route("/addcontact")
-def add_contact():
+def addcontact():
 	user_reference = request.args.get('user_ref')
 	phone = request.args.get('phone')
 	contact = Contacts(user_reference, phone)
 	return jsonify(contact=contact.insert_into_db())
+
+@application.route("/add_contact")
+def add_contact():
+	return render_template('add_contact.html')
+
+@application.route('/get_contacts')
+def get_contacts():
+	list_contacts = Contacts.query.all()
+	return jsonify([contact.serialize for contact in list_contacts])
 
 @application.route("/addreport")
 def add_report():
@@ -47,9 +57,14 @@ def emergency():
 	type_report = request.args.get('type')
 	time = request.args.get('time')
 	list_contacts = Contacts.query.filter_by(user_reference=user).all()
-	phone_numbers = [contact['phone'] for contact in list_contacts]
-	for number in phone_numers:
-		TwilioClient.send_message_to(number)
+	phone_numbers = [contact.phone for contact in list_contacts]
+	urgent_user = User.query.filter_by(id=user).first()
+	for number in phone_numbers:
+		print(number)
+		if int(latitude) != -1 and int(longitude) != -1:
+			TwilioClient.send_message_to(urgent_user, latitude=latitude, longitude=longitude, to=number)
+		else:
+			TwilioClient.send_message_to(urgent_user, to=number)
 	report = Reports(time, user, latitude, longitude, type_report)
 	return jsonify(report=report.insert_into_db())
 

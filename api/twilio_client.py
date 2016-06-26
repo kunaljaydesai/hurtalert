@@ -7,9 +7,9 @@ class TwilioClient:
 	secret = "1865e9ace22ad54aa480cf5774ccfc7d"
 
 	@staticmethod
-	def send_message_to(to="4087180622"):
+	def send_message_to(user, latitude=37.410294, longitude=-122.036461, to="4087180622"):
 		client = TwilioRestClient(TwilioClient.sid, TwilioClient.secret)
-		message = client.messages.create(body="text messages are working - kunal", to="9253894466", from_="16507536256")
+		message = client.messages.create(body=user.name + " needs help at " + str(latitude) + ", " + str(longitude), to=to, from_="16507536256")
 		return message
 
 	@staticmethod
