@@ -160,8 +160,10 @@ def bounding_box():
 			'longitude' : -122.319 + lon_step,
 		},
 	}
-	
-	bounding_boxes = [current_box]
+	bounding_boxes = []
+	current_box['count'] = Reports.query.filter(Reports.latitude <=current_box['top_left']['latitude']).filter(Reports.latitude >= current_box['bottom_right']['latitude']).filter(Reports.longitude >= current_box['top_left']['longitude']).filter(Reports.longitude <= current_box['bottom_right']['longitude']).count()
+	if current_box['count'] > 50:
+		bounding_boxes.append(current_box)
 	current_longitude = current_box['top_left']['longitude']
 	current_latitude = current_box['top_left']['latitude']
 	while current_longitude <= -122.164:
@@ -180,21 +182,25 @@ def bounding_box():
 					'longitude' : bottom_right_long,
 				},
 			}
-			bounding_boxes.append(current_box)
+			current_box['count'] = Reports.query.filter(Reports.latitude <=current_box['top_left']['latitude']).filter(Reports.latitude >= current_box['bottom_right']['latitude']).filter(Reports.longitude >= current_box['top_left']['longitude']).filter(Reports.longitude <= current_box['bottom_right']['longitude']).count()
+			if current_box['count'] > 50:
+				bounding_boxes.append(current_box)
 			current_latitude = current_box['top_left']['latitude']
 		current_longitude = current_longitude + lon_step
+		current_latitude = 37.9049
 		current_box = {
 			'top_left' : {
-				'latitude' : 37.9049,
+				'latitude' : current_latitude,
 				'longitude' : current_longitude,
 			},
 			'bottom_right' : {
-				'latitude' : 37.9049 - 0.004412,
+				'latitude' : current_latitude - lat_step,
 				'longitude' : current_longitude + lon_step,
 			}
 		}
-		print('new latitude')
-		bounding_boxes.append(current_box)
+		current_box['count'] = Reports.query.filter(Reports.latitude <=current_box['top_left']['latitude']).filter(Reports.latitude >= current_box['bottom_right']['latitude']).filter(Reports.longitude >= current_box['top_left']['longitude']).filter(Reports.longitude <= current_box['bottom_right']['longitude']).count()
+		if current_box['count'] > 50:
+			bounding_boxes.append(current_box)
 	return jsonify(bounding_boxes=bounding_boxes)
 
 
