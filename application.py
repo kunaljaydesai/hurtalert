@@ -66,7 +66,7 @@ def emergency():
 	urgent_user = User.query.filter_by(id=3).first()
 	for number in phone_numbers:
 		print(number)
-		if latitude is not None and longitude is not None and int(latitude) != -1 and int(longitude) != -1:
+		if latitude is not None and longitude is not None and float(latitude) != -1 and float(longitude) != -1:
 			print(TwilioClient.send_message_to(urgent_user, latitude=latitude, longitude=longitude, to=str(number)))
 		else:
 			print(TwilioClient.send_message_to(urgent_user, to=str(number)))
