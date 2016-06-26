@@ -61,8 +61,8 @@ class Reports(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	time = db.Column(db.BigInteger)
 	reporter = db.Column(db.Integer)
-	latitude = db.Column(db.Float)
-	longitude = db.Column(db.Float)
+	latitude = db.Column(db.Float(precision=64))
+	longitude = db.Column(db.Float(precision=64))
 	type_crime = db.Column(db.String(80))
 
 	def __init__(self, time, reporter, latitude, longitude, type_crime):
