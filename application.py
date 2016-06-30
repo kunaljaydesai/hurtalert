@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template, jsonify, redirect
 from flask_sqlalchemy import SQLAlchemy
-from models import User, Contacts, Reports, db
+from models import User, Contacts, Reports, Intersection, db
 from api.twilio_client import TwilioClient
 import datetime
 import requests
@@ -19,40 +19,57 @@ harmful = [""]
 def create_tables():
 	db.create_all()
 
-@application.route('/heat_map')
-def heattt():
-    return render_template('heatmap.html')
+#front end
 
 @application.route("/")
 def index():
-	return render_template('index.html')
+    return render_template('index.html')
 
 @application.route("/home")
 def home():
-	return render_template('home.html')
+    return render_template('home.html')
 
-@application.route("/newuser")
+@application.route('/heat_map')
+def heat_map():
+    return render_template('heatmap.html')
+
+@application.route("/add_contact")
+def add_contact():
+    return render_template('add_contact.html')
+
+@application.route('/safest_route')
+def safest_route():
+    return render_template('safest_route.html')
+
+#API
+
+@application.route('/api/add_intersection')
+def add_intersection():
+    latitude = request.args.get('latitude')
+    longitude = request.args.get('longitude')
+    street_1 = request.args.get('street1')
+    street_2 = request.args.get('street2')
+    intersection = Intersection(latitude, longitude, street_1, street_2)
+    return jsonify(success=0, intersection=intersection.insert_into_db())
+
+@application.route("/api/newuser")
 def new_user():
 	name = request.args.get('name')
 	phone = request.args.get('phone')
 	user = User(name, phone)
-	return jsonify(user=user.insert_into_db())
+	return jsonify(success=0, user=user.insert_into_db())
 
-@application.route("/addcontact")
+@application.route("/api/addcontact")
 def addcontact():
 	user_reference = request.args.get('user_ref')
 	phone = request.args.get('phone')
 	contact = Contacts(user_reference, phone)
-	return jsonify(contact=contact.insert_into_db())
+	return jsonify(success=0, contact=contact.insert_into_db())
 
-@application.route("/add_contact")
-def add_contact():
-	return render_template('add_contact.html')
-
-@application.route('/get_contacts')
+@application.route('/api/get_contacts')
 def get_contacts():
 	list_contacts = Contacts.query.all()
-	return jsonify([contact.serialize for contact in list_contacts])
+	return jsonify(success=0, contacts=[contact.serialize for contact in list_contacts])
 
 @application.route("/addreport")
 def add_report():
@@ -62,7 +79,7 @@ def add_report():
 	longitude = request.args.get('longitude')
 	type_report = request.args.get('type')
 	report = Reports(time, reporter, latitude, longitude, type_report)
-	return jsonify(report=report.insert_into_db())
+	return jsonify(success=0, report=report.insert_into_db())
 
 @application.route('/emergency')
 def emergency():
@@ -80,10 +97,9 @@ def emergency():
 			print(TwilioClient.send_message_to(urgent_user, latitude=latitude, longitude=longitude, to=str(number)))
 		else:
 			print(TwilioClient.send_message_to(urgent_user, to=str(number)))
-	#report = Reports(time, 3, latitude, longitude, type_report)
-	return jsonify(report=0)
+	return jsonify(success=0, report=0)
 
-@application.route('/filter')
+@application.route('/api/filter')
 def filter():
 	time_start = request.arg.get('time_start')
 	time_end = request.args.get('time_end')
@@ -99,13 +115,9 @@ def filter():
 	response_reports = []
 	for reports in report_list:
 		response_reports.append(reports.serialize)
-	return jsonify(reports=response_reports)
+	return jsonify(success=0, reports=response_reports)
 
-@application.route('/safest_route')
-def safest_route():
-	return render_template('safest_route.html')
-
-@application.route('/crime_rates_by_hour')
+@application.route('/api/crime_rates_by_hour')
 def by_hour():
 	list_reports = Reports.query.all()
 	hour_map = {}
@@ -115,9 +127,9 @@ def by_hour():
 			hour_map[time] = hour_map[time] + 1
 		else:
 			hour_map[time] = 1
-	return jsonify(hour=hour_map, count=len(list_reports))
+	return jsonify(success=0, hour=hour_map, count=len(list_reports))
 
-@application.route('/crime_rates_by_dow')
+@application.route('/api/crime_rates_by_dow')
 def by_dow():
 	list_reports = Reports.query.all()
 	dow = {}
@@ -127,9 +139,9 @@ def by_dow():
 			dow[time] = dow[time] + 1
 		else:
 			dow[time] = 1
-	return jsonify(dow=dow, count=len(list_reports))
+	return jsonify(success=0, dow=dow, count=len(list_reports))
 
-@application.route('/crime_rates_by_month')
+@application.route('/api/crime_rates_by_month')
 def by_month():
 	list_reports = Reports.query.all()
 	month = {0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0, 11:0};
@@ -139,22 +151,12 @@ def by_month():
 			month[time] = month[time] + 1
 		else:
 			month[time] = 1
-	return jsonify(month=month, count=len(list_reports))
-
-
-@application.route('/sameer')
-def sameer():
-	point1 = {
-		'latitude' : 33.1,
-		'longitude' : -122.4
-	}
-	list_points = [point1, point1, point1]
-	return jsonify(points=list_points)
+	return jsonify(success=0, month=month, count=len(list_reports))
 
 @application.route('/get_reports')
 def get_reports():
 	reports = Reports.query.filter(Reports.time < 1467337800).all()
-	return jsonify(reports=[report.serialize for report in reports])
+	return jsonify(success=0, reports=[report.serialize for report in reports])
 
 @application.route('/bounding_boxes')
 def bounding_box():
@@ -211,7 +213,7 @@ def bounding_box():
 		current_box['count'] = Reports.query.filter(Reports.latitude <=current_box['top_left']['latitude']).filter(Reports.latitude >= current_box['bottom_right']['latitude']).filter(Reports.longitude >= current_box['top_left']['longitude']).filter(Reports.longitude <= current_box['bottom_right']['longitude']).count()
 		if current_box['count'] > 50:
 			bounding_boxes.append(current_box)
-	return jsonify(bounding_boxes=bounding_boxes)
+	return jsonify(success=0, bounding_boxes=bounding_boxes)
 
 @application.route('/get_sr')
 def sr():
@@ -616,4 +618,4 @@ def get_map():
 	return render_template('map.html', waypoints=waypoints_data, start_lat=start_lat,start_lng=start_lon, end_lat=end_lat, end_lng=end_lon)
 
 if __name__ == "__main__":
-	application.run(host="0.0.0.0", port=81, debug=True)
+	application.run(host="0.0.0.0", port=80, debug=True)

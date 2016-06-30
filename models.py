@@ -88,4 +88,35 @@ class Reports(db.Model):
 		db.session.commit()
 		return self.serialize
 
+class Intersection(db.Model):
+
+	id = db.Column(db.Integer, primary_key=True)
+	latitude = db.Column(db.String(30))
+	longitude = db.Column(db.String(30))
+	street_1 = db.Column(db.String(80))
+	street_2 = db.Column(db.String(80))
+
+	def __init__(self, latitude, longitude, street_1=None, street_2=None):
+		self.latitude = latitude
+		self.longitude = longitude
+		self.street_1 = street_1
+		self.street_2 = street_2
+
+	def insert_into_db(self):
+		intersection = Intersection.query.filter_by(latitude=self.latitude, longitude=self.longitude).first()
+		if intersection is None:
+			db.session.add(self)
+			db.session.commit()
+			return self.serialize
+		return intersection.serialize
+
+	@property
+	def serialize(self):
+		return {
+			'id' : self.id,
+			'latitude' : self.latitude,
+			'longitude' : self.longitude,
+			'street_1' : self.street_1,
+			'street_2' : self.street_2,
+		}
 
