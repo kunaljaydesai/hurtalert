@@ -1,7 +1,9 @@
 from flask import Flask, request, render_template, jsonify, redirect
 from flask_sqlalchemy import SQLAlchemy
 from models import User, Contacts, Reports, Intersection, db
-from api.twilio_client import TwilioClient
+from views.api.twilio_client import TwilioClient
+from views.api import path, user, data
+from views.view import render
 import datetime
 import requests
 
@@ -20,143 +22,30 @@ def create_tables():
 	db.create_all()
 
 #front end
+application.add_url_rule('/', view_func=render.index)
+application.add_url_rule('/home', view_func=render.home)
+application.add_url_rule('/heat_map', view_func=render.heat_map)
+application.add_url_rule('/add_contact', view_func=render.addcontact)
+application.add_url_rule('/safest_route', view_func=render.safest_route)
 
-@application.route("/")
-def index():
-    return render_template('index.html')
+###API
 
-@application.route("/home")
-def home():
-    return render_template('home.html')
+#path
+application.add_url_rule('/api/path/add_intersection', view_func=path.add_intersection)
+application.add_url_rule('/api/path/add_report', view_func=path.add_report)
+application.add_url_rule('/api/path/filter', view_func=path.filter)
+application.add_url_rule('/api/path/get_reports', view_func=path.get_repots)
 
-@application.route('/heat_map')
-def heat_map():
-    return render_template('heatmap.html')
+#user
+application.add_url_rule('/api/user/add_user', view_func=user.add_user)
+application.add_url_rule('/api/user/add_contact', view_func=user.add_contact)
+application.add_url_rule('/api/user/get_contacts', view_func=user.get_contacts)
+application.add_url_rule('/api/user/emergency', view_func=user.emergency)
 
-@application.route("/add_contact")
-def add_contact():
-    return render_template('add_contact.html')
-
-@application.route('/safest_route')
-def safest_route():
-    return render_template('safest_route.html')
-
-#API
-
-@application.route('/api/add_intersection')
-def add_intersection():
-    latitude = request.args.get('latitude')
-    longitude = request.args.get('longitude')
-    street_1 = request.args.get('street1')
-    street_2 = request.args.get('street2')
-    intersection = Intersection(latitude, longitude, street_1, street_2)
-    return jsonify(success=0, intersection=intersection.insert_into_db())
-
-@application.route("/api/newuser")
-def new_user():
-	name = request.args.get('name')
-	phone = request.args.get('phone')
-	user = User(name, phone)
-	return jsonify(success=0, user=user.insert_into_db())
-
-@application.route("/api/addcontact")
-def addcontact():
-	user_reference = request.args.get('user_ref')
-	phone = request.args.get('phone')
-	contact = Contacts(user_reference, phone)
-	return jsonify(success=0, contact=contact.insert_into_db())
-
-@application.route('/api/get_contacts')
-def get_contacts():
-	list_contacts = Contacts.query.all()
-	return jsonify(success=0, contacts=[contact.serialize for contact in list_contacts])
-
-@application.route("/addreport")
-def add_report():
-	time = request.args.get('time')
-	reporter = 3
-	latitude = request.args.get('latitude')
-	longitude = request.args.get('longitude')
-	type_report = request.args.get('type')
-	report = Reports(time, reporter, latitude, longitude, type_report)
-	return jsonify(success=0, report=report.insert_into_db())
-
-@application.route('/emergency')
-def emergency():
-	user = request.args.get('id')
-	latitude = request.args.get('latitude')
-	longitude = request.args.get('longitude')
-	type_report = request.args.get('type')
-	time = request.args.get('time')
-	list_contacts = Contacts.query.filter_by(user_reference=3).all()
-	phone_numbers = [contact.phone for contact in list_contacts]
-	urgent_user = User.query.filter_by(id=3).first()
-	for number in phone_numbers:
-		print(number)
-		if latitude is not None and longitude is not None and float(latitude) != -1 and float(longitude) != -1:
-			print(TwilioClient.send_message_to(urgent_user, latitude=latitude, longitude=longitude, to=str(number)))
-		else:
-			print(TwilioClient.send_message_to(urgent_user, to=str(number)))
-	return jsonify(success=0, report=0)
-
-@application.route('/api/filter')
-def filter():
-	time_start = request.arg.get('time_start')
-	time_end = request.args.get('time_end')
-	center_lat = request.args.get('center_lat')
-	center_lon = request.args.get('center_lon')
-	height = request.args.get('height')
-	width = request.args.get('width')
-	top_left = [center_lat - height / 2, center_lon - width / 2]
-	bottom_right = [center_lat + height / 2, center_lon + height / 2]
-	filter_location_query = Reports.query.filter(Reports.latitude >= top_left[0]).filter(Reports.latitude <= bottom_right[0]).filter(Reports.longitude <= top_left[1]).filter(Reports.longitude >= bottom_right[1]).all()
-	and_time = filter_location_query.filter(Reports.time >= time_start).filter(Reports.time <= time_end)
-	report_list = and_time.all()
-	response_reports = []
-	for reports in report_list:
-		response_reports.append(reports.serialize)
-	return jsonify(success=0, reports=response_reports)
-
-@application.route('/api/crime_rates_by_hour')
-def by_hour():
-	list_reports = Reports.query.all()
-	hour_map = {}
-	for report in list_reports:
-		time = datetime.datetime.fromtimestamp(report.time - 7 * 60 * 60).time().hour
-		if time in hour_map:
-			hour_map[time] = hour_map[time] + 1
-		else:
-			hour_map[time] = 1
-	return jsonify(success=0, hour=hour_map, count=len(list_reports))
-
-@application.route('/api/crime_rates_by_dow')
-def by_dow():
-	list_reports = Reports.query.all()
-	dow = {}
-	for report in list_reports:
-		time = datetime.datetime.fromtimestamp(report.time).date().weekday()
-		if time in dow:
-			dow[time] = dow[time] + 1
-		else:
-			dow[time] = 1
-	return jsonify(success=0, dow=dow, count=len(list_reports))
-
-@application.route('/api/crime_rates_by_month')
-def by_month():
-	list_reports = Reports.query.all()
-	month = {0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0, 11:0};
-	for report in list_reports:
-		time = datetime.datetime.fromtimestamp(report.time).date().month -1
-		if time in month:
-			month[time] = month[time] + 1
-		else:
-			month[time] = 1
-	return jsonify(success=0, month=month, count=len(list_reports))
-
-@application.route('/get_reports')
-def get_reports():
-	reports = Reports.query.filter(Reports.time < 1467337800).all()
-	return jsonify(success=0, reports=[report.serialize for report in reports])
+#data
+application.add_url_rule('/api/data/crime_by_hour', view_func=data.by_hour)
+application.add_url_rule('/api/data/crime_by_day', view_func=data.by_dow)
+application.add_url_rule('/api/data/crime_by_month', view_func=data.by_month)
 
 @application.route('/bounding_boxes')
 def bounding_box():

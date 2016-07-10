@@ -1,0 +1,40 @@
+from flask import request, jsonify
+from models import Intersection, Reports
+
+def add_intersection():
+    latitude = request.args.get('latitude')
+    longitude = request.args.get('longitude')
+    street_1 = request.args.get('street1')
+    street_2 = request.args.get('street2')
+    intersection = Intersection(latitude, longitude, street_1, street_2)
+    return jsonify(success=0, intersection=intersection.insert_into_db())
+
+def add_report():
+	time = request.args.get('time')
+	reporter = 3
+	latitude = request.args.get('latitude')
+	longitude = request.args.get('longitude')
+	type_report = request.args.get('type')
+	report = Reports(time, reporter, latitude, longitude, type_report)
+	return jsonify(success=0, report=report.insert_into_db())
+
+def filter():
+	time_start = request.arg.get('time_start')
+	time_end = request.args.get('time_end')
+	center_lat = request.args.get('center_lat')
+	center_lon = request.args.get('center_lon')
+	height = request.args.get('height')
+	width = request.args.get('width')
+	top_left = [center_lat - height / 2, center_lon - width / 2]
+	bottom_right = [center_lat + height / 2, center_lon + height / 2]
+	filter_location_query = Reports.query.filter(Reports.latitude >= top_left[0]).filter(Reports.latitude <= bottom_right[0]).filter(Reports.longitude <= top_left[1]).filter(Reports.longitude >= bottom_right[1]).all()
+	and_time = filter_location_query.filter(Reports.time >= time_start).filter(Reports.time <= time_end)
+	report_list = and_time.all()
+	response_reports = []
+	for reports in report_list:
+		response_reports.append(reports.serialize)
+	return jsonify(success=0, reports=response_reports)
+
+def get_reports():
+	reports = Reports.query.filter(Reports.time < 1467337800).all()
+	return jsonify(success=0, reports=[report.serialize for report in reports])
