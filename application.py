@@ -4,7 +4,6 @@ from models import User, Contacts, Reports, Intersection, db
 from views.api.twilio_client import TwilioClient
 from views.api import path, user, data
 from views.view import render
-import datetime
 import requests
 
 application = Flask(__name__)
@@ -34,7 +33,7 @@ application.add_url_rule('/safest_route', view_func=render.safest_route)
 application.add_url_rule('/api/path/add_intersection', view_func=path.add_intersection)
 application.add_url_rule('/api/path/add_report', view_func=path.add_report)
 application.add_url_rule('/api/path/filter', view_func=path.filter)
-application.add_url_rule('/api/path/get_reports', view_func=path.get_repots)
+application.add_url_rule('/api/path/get_reports', view_func=path.get_reports)
 
 #user
 application.add_url_rule('/api/user/add_user', view_func=user.add_user)
@@ -44,7 +43,7 @@ application.add_url_rule('/api/user/emergency', view_func=user.emergency)
 
 #data
 application.add_url_rule('/api/data/crime_by_hour', view_func=data.by_hour)
-application.add_url_rule('/api/data/crime_by_day', view_func=data.by_dow)
+application.add_url_rule('/api/data/crime_by_dow', view_func=data.by_dow)
 application.add_url_rule('/api/data/crime_by_month', view_func=data.by_month)
 
 @application.route('/bounding_boxes')

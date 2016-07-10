@@ -1,116 +1,28 @@
 {% extends 'navbar.html' %}
+
 {% block script %}
+<script src="{{ url_for('static', filename='analytics.js') }}"></script>
 <script>
 	$(document).ready(function() {
-
-		var renderGraph1 = function(x) {
-			var data = [
-			  {
-			  	y: x,
-			    x: ["12:00 AM", "1:00AM","2:00AM", "3:00AM", "4:00AM", "5:00AM", "6:00AM", "7:00AM", "8:00AM", "9:00AM", "10:00AM", "11:00AM", "12:00PM", "1:00PM", "2:00PM", "3:00PM", "4:00PM", "5:00PM", "6:00PM", "7:00PM", "8:00PM", "9:00PM", "10:00PM", "11:00PM"],
-			    type: 'bar',
-			  }
-			];
-			console.log(Plotly.newPlot('graph1', data));
-		}
-
-		var renderGraph2 = function(x) {
-			var data = [
-				{
-					y: x,
-					x: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-					type: 'bar',
-				}
-			];
-			Plotly.newPlot('graph2', data);
-		}
-
-		var renderGraph3 = function(x) {
-			var data = [
-				{
-					y: x,
-					x: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-					type: 'bar',
-				}
-			];
-			Plotly.newPlot('graph3', data);
-		}
-
-		$("#emergency").on('click', function() {
-			$.ajax({
-				'url' : '/emergency',
-				'data' : {
-					'id' : 3,
-					'time' : -1,
-					'latitude' : -1,
-					'longitude' : -1,
-				},
-				success : function(data) {
-					console.log(data);
-				}
-			});
-		});
-		$.ajax({
-			'url' : '/crime_rates_by_hour',
-			success : function(data) {
-				var hourDictionary = data['hour']
-				var x = [];
-				for(var i = 0; i < 24; i++) {
-					x.push(hourDictionary[i]);
-				}
-				console.log(data.count);
-				console.log(x);
-				renderGraph1(x);
-			},
-		});
-
-		$.ajax({
-			'url' : '/crime_rates_by_dow',
-			success : function(data) {
-				var dowDictionary = data['dow'];
-				var x = [];
-				for (var i = 0; i < 7; i++) {
-					x.push(dowDictionary[i]);
-				}
-				console.log(x);
-				renderGraph2(x);
-			}
-		})
-
-		$.ajax({
-			'url' : '/crime_rates_by_month',
-			success : function(data) {
-				var monthDictionary = data['month'];
-				var x = [];
-				for (var i = 0; i < 12; i++) {
-					x.push(monthDictionary[i]);
-				}
-				console.log(x);
-				renderGraph3(x);
-			}
-		});
-
+		getCrimeByHour('hour')
+		getCrimeByDay('day')
+		getCrimeByMonth('month')
 	});
-</script>
-<script>
-
-	
 </script>
 {% endblock %}
 
 {% block body %}
+
 <div class="container">
 	<h1>Crime Rates by Time of Day</h1>
-	<div id="graph1">
+	<div id="hour">
 	</div>
 	<h1>Crime Rates by Day of Week</h1>
-	<div id="graph2">
+	<div id="day">
 	</div>
 	<h1>Crime Rates by Month</h1>
-	<div id="graph3">
+	<div id="month">
 	</div>
 </div>
-
-
 
 {% endblock %}

@@ -1,6 +1,7 @@
 {% extends 'navbar.html' %}
 {% block script %}
 <script src="{{ url_for('static', filename='upload.js') }}"></script>
+<script src="{{ url_for('static', filename='api.js') }}"></script>
 <script>
 	$(document).ready(function() {
 		$("#submit").on('click', function() {
@@ -9,18 +10,16 @@
 				location.reload();
 			});
 		})
-		$.ajax({
-			'url' : '/get_contacts',
-			success : function(data) {
-				var listPhone = data;
-				for (var i = 0; i < listPhone.length; i++) {
-					var phoneObj = listPhone[i];
-					var phoneNum = phoneObj.phone;
-					var phoneString = "<td>" + phoneNum + "</td>";
-					$("#e_data").append("<tr>" + phoneString + "</tr>");
-				}
+		var renderContacts = function(data) {
+			var listPhone = data;
+			for (var i = 0; i < listPhone.length; i++) {
+				var phoneObj = listPhone[i];
+				var phoneNum = phoneObj.phone;
+				var phoneString = "<td>" + phoneNum + "</td>";
+				$("#e_data").append("<tr>" + phoneString + "</tr>");
 			}
-		});
+		}
+		getContacts(renderContacts);
 	});
 </script>
 {% endblock %}
