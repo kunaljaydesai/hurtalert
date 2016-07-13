@@ -4,6 +4,7 @@ from models import User, Contacts, Reports, Intersection, db
 from views.api.twilio_client import TwilioClient
 from views.api import path, user, data
 from views.view import render
+
 import requests
 
 application = Flask(__name__)
@@ -19,6 +20,7 @@ harmful = [""]
 @application.before_first_request
 def create_tables():
 	db.create_all()
+
 
 #front end
 application.add_url_rule('/', view_func=render.index)

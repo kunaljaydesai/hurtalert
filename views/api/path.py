@@ -1,7 +1,7 @@
-from flask import request, jsonify
+from flask import request, jsonify, url_for
 from models import Intersection, Reports
-from graph import Graph, RouteNode, Node, Point, Cost
-from data import load_graph
+from graph.graph import Point
+from graph.load import load_graph
 
 def add_intersection():
     latitude = request.args.get('latitude')
@@ -47,17 +47,17 @@ def route():
 	end_lat = request.args.get('end_lat')
 	end_lon = request.args.get('end_lon')
 	if start_lat is not None and start_lon is not None and end_lat is not None and end_lon is not None:
-		start_lat = int(start_lat)
-		start_lon = int(start_lon)
-		end_lat = int(end_lat)
-		end_lon = int(end_lon)
+		start_lat = float(start_lat)
+		start_lon = float(start_lon)
+		end_lat = float(end_lat)
+		end_lon = float(end_lon)
 		start = Point(start_lat, start_lon)
 		end = Point(end_lat, end_lon)
-		graph = load_graph()
+		graph = load_graph('streets_network.geojson')
 		path = []
 		try:
 			path = graph.shortest_path(start, end)
 		except:
 			return jsonify(success=1)
-		return jsonify(success=0, path=path)
+		return jsonify(success=0, path=[[node.node.get_pt().latitude, node.node.get_pt().longitude] for node in path])
 	return jsonify(success=1)
