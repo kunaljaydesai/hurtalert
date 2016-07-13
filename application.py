@@ -34,6 +34,7 @@ application.add_url_rule('/api/path/add_intersection', view_func=path.add_inters
 application.add_url_rule('/api/path/add_report', view_func=path.add_report)
 application.add_url_rule('/api/path/filter', view_func=path.filter)
 application.add_url_rule('/api/path/get_reports', view_func=path.get_reports)
+application.add_url_rule('/api/path/route', view_func=path.route)
 
 #user
 application.add_url_rule('/api/user/add_user', view_func=user.add_user)

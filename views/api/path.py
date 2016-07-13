@@ -1,5 +1,7 @@
 from flask import request, jsonify
 from models import Intersection, Reports
+from graph import Graph, RouteNode, Node, Point, Cost
+from data import load_graph
 
 def add_intersection():
     latitude = request.args.get('latitude')
@@ -38,3 +40,24 @@ def filter():
 def get_reports():
 	reports = Reports.query.filter(Reports.time < 1467337800).all()
 	return jsonify(success=0, reports=[report.serialize for report in reports])
+
+def route():
+	start_lat = request.args.get('start_lat')
+	start_lon = request.args.get('start_lon')
+	end_lat = request.args.get('end_lat')
+	end_lon = request.args.get('end_lon')
+	if start_lat is not None and start_lon is not None and end_lat is not None and end_lon is not None:
+		start_lat = int(start_lat)
+		start_lon = int(start_lon)
+		end_lat = int(end_lat)
+		end_lon = int(end_lon)
+		start = Point(start_lat, start_lon)
+		end = Point(end_lat, end_lon)
+		graph = load_graph()
+		path = []
+		try:
+			path = graph.shortest_path(start, end)
+		except:
+			return jsonify(success=1)
+		return jsonify(success=0, path=path)
+	return jsonify(success=1)
