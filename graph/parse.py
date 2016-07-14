@@ -2,9 +2,11 @@ from flask import url_for
 from graph import *
 import json
 from pprint import pprint
+import os 
+directory = os.path.dirname(os.path.realpath(__file__))
 
 def parse(filename):
-	with open("/Users/KunalDesai/Documents/Hurt Alert/Web/hurtalert/graph/" + filename) as data_file:
+	with open(directory + "/" + filename) as data_file:
 	    data = json.load(data_file)
 	    
 	feature_list = data['features']

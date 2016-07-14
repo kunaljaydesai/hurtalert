@@ -59,5 +59,8 @@ def route():
 			path = graph.shortest_path(start, end)
 		except:
 			return jsonify(success=1)
-		return jsonify(success=0, path=[[node.node.get_pt().latitude, node.node.get_pt().longitude] for node in path])
+		path = [[node.node.get_pt().latitude, node.node.get_pt().longitude] for node in path]
+		path[0] = [start_lat, start_lon]
+		path[-1] = [end_lat, end_lon]
+		return jsonify(success=0, path=path)
 	return jsonify(success=1)
