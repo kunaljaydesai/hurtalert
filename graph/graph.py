@@ -1,5 +1,5 @@
 import heapq
-
+from models import Reports
 
 class Graph:
 
@@ -60,7 +60,7 @@ class RouteNode:
 		self.cost = 0
 		if parent is not None:
 			self.cost = parent.cost + \
-				Cost(distance=node.get_distance_node(parent.node)).value()
+				Cost(distance=node.get_distance_node(parent.node), start_point=node.get_pt(), end_point=parent.node.get_pt()).value()
 		self.weight = self.cost + distance
 		self.parent = parent
 
@@ -132,8 +132,10 @@ class Point:
 
 class Cost:
 
-	def __init__(self, distance=0):
-		self.output = distance
+	def __init__(self, distance=0, start_point=None, end_point=None):
+		num_crimes = len(Reports.query.filter(Reports.latitude < start_point.get_lat() - 0.0154945054945).filter(Reports.longitude > start_point.get_lon() - 0.0154945054945).filter(Reports.latitude > start_point.get_lat() + 0.0154945054945).filter(Reports.longitude < start_point.get_lon()+ 0.0154945054945).all())
+		print("number of crimes between " + str(start_point) + " and " + str(end_point) + " is " + str(num_crimes))
+		self.output = distance * num_crimes
 
 	def value(self):
 		return self.output

@@ -67,6 +67,7 @@
               stopover: true
             });
         }
+        console.log(waypts);
         directionsService.route({
           origin: {'lat' : {{start_lat}}, 'lng' : {{start_lng}}},
           destination: {'lat' : {{end_lat}}, 'lng' : {{end_lng}}},

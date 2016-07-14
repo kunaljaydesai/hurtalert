@@ -1,4 +1,4 @@
-from flask import request, jsonify, url_for
+from flask import request, jsonify, url_for, render_template
 from models import Intersection, Reports
 from graph.graph import Point
 from graph.load import loaded_graph
@@ -59,8 +59,11 @@ def route():
 			path = graph.shortest_path(start, end)
 		except:
 			return jsonify(success=1)
-		path = [[node.node.get_pt().latitude, node.node.get_pt().longitude] for node in path]
+		path = [[node.node.get_pt().longitude, node.node.get_pt().latitude] for node in path]
 		path[0] = [start_lat, start_lon]
 		path[-1] = [end_lat, end_lon]
-		return jsonify(success=0, path=path)
+		path = path[1:]
+		path = path[:-1]
+		return render_template('map.html', waypoints=path, start_lat=start_lon, start_lng=start_lat, end_lat=end_lon, end_lng=end_lat)
+		#return jsonify(success=0, path=path)
 	return jsonify(success=1)
